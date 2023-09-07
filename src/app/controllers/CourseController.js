@@ -16,11 +16,11 @@ class CourseController {
 
     store(req, res, next) {
         const formData = req.body;
-        formData.image = `https://i.ytimg.com/vi/z2f7RHgvddc/hqdefault.jpg`;
+        formData.image = `https://i.ytimg.com/vi/${formData.videoId}}/hqdefault.jpg`;
         const course = new Course(req.body);
         course
             .save()
-            .then(() => res.redirect('/'))
+            .then(() => res.redirect('/me/stored/courses'))
             .catch((error) => next(error));
     }
 
@@ -38,6 +38,37 @@ class CourseController {
         Course.updateOne({ _id: req.params.id }, req.body)
             .then((course) => res.redirect('/me/stored/courses'))
             .catch((err) => next(err));
+    }
+
+    destroy(req, res, next) {
+        Course.delete({ _id: req.params.id })
+            .then(() => res.redirect('back'))
+            .catch((err) => next(err));
+    }
+
+    forceDestroy(req, res, next) {
+        Course.deleteOne({ _id: req.params.id })
+            .then(() => res.redirect('back'))
+            .catch((err) => next(err));
+    }
+
+    restore(req, res, next) {
+        Course.restore({ _id: req.params.id })
+            .then(() => res.redirect('back'))
+            .catch((err) => next(err));
+    }
+
+    handleFormAction(req, res, next) {
+        switch (req.body.action) {
+            case 'delete':
+                Course.delete({ _id: { $in: req.body.courseIds } })
+                    .then(() => res.redirect('back'))
+                    .catch((err) => next(err));
+                break;
+
+            default:
+                res.json({ message: 'Action is invalid' });
+        }
     }
 }
 
